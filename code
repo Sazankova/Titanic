@@ -1,46 +1,75 @@
 import pandas as pd
 import numpy as np
 
-# Загрузка данных
-df = pd.read_csv('titanic.csv', index_col='PassengerId')
+# --- ЗАГРУЗКА ДАННЫХ ---
+url = "https://raw.githubusercontent.com/Sazankova/Titanic/main/titanic.csv"
+df = pd.read_csv(url, index_col="PassengerId")
 
-# Задание 1: количество мужчин и женщин
-male_count = (df['Sex'] == 'male').sum()
-female_count = (df['Sex'] == 'female').sum()
-print(f"{male_count} {female_count}")
+# --- ЗАДАНИЕ 1: количество мужчин и женщин ---
+male_count = (df["Sex"] == "male").sum()
+female_count = (df["Sex"] == "female").sum()
 
-# Задание 2: доля выживших в процентах
-survived_pct = (df['Survived'].sum() / len(df)) * 100
-print(f"{survived_pct:.2f}")
+# --- ЗАДАНИЕ 2: доля выживших в процентах ---
+survived_pct = (df["Survived"].sum() / len(df)) * 100
 
-# Задание 3: доля пассажиров первого класса в процентах
-pclass1_pct = ((df['Pclass'] == 1).sum() / len(df)) * 100
-print(f"{pclass1_pct:.2f}")
+# --- ЗАДАНИЕ 3: доля пассажиров первого класса ---
+pclass1_pct = ((df["Pclass"] == 1).sum() / len(df)) * 100
 
-# Задание 4: среднее и медиана возраста
-age_mean = df['Age'].mean()
-age_median = df['Age'].median()
-print(f"{age_mean:.2f} {age_median:.2f}")
+# --- ЗАДАНИЕ 4: среднее и медиана возраста ---
+age_mean = df["Age"].mean()
+age_median = df["Age"].median()
 
-# Задание 5: корреляция Пирсона между SibSp и Parch
-correlation = df['SibSp'].corr(df['Parch'])
-print(f"{correlation:.2f}")
+# --- ЗАДАНИЕ 5: корреляция Пирсона между SibSp и Parch ---
+correlation = df["SibSp"].corr(df["Parch"])
 
-# Задание 6: самое популярное женское имя
-def extract_first_name(name):
-    if ',' in name:
-        after_comma = name.split(',')[1].strip()
-        if '(' in after_comma:
-            after_comma = after_comma.split('(')[0].strip()
-        if '.' in after_comma:
-            parts = after_comma.split('.')
-            if len(parts) > 1:
-                name_part = parts[1].strip().replace('"', '').strip()
-                return name_part.split()[0] if name_part else ''
-        return after_comma.split()[0] if after_comma else ''
-    return ''
+# --- ЗАДАНИЕ 6: самое популярное женское имя ---
+def extract_female_name(full_name, sex):
+    """Извлекает женское имя из полного имени"""
+    if sex == 'male':
+        return None
+    try:
+        # Ищем имя в скобках (для Mrs.)
+        if '(' in full_name and ')' in full_name:
+            bracket_content = full_name.split('(')[1].split(')')[0]
+            female_name = bracket_content.split()[0]
+            return female_name.strip('"\'')
+        # Ищем Miss.
+        if 'Miss.' in full_name:
+            after_miss = full_name.split('Miss.')[1].strip()
+            female_name = after_miss.split()[0]
+            return female_name.strip('"\'')
+        return None
+    except:
+        return None
 
-df['FirstName'] = df['Name'].apply(extract_first_name)
-female_df = df[df['Sex'] == 'female']
-most_common_name = female_df['FirstName'].value_counts().idxmax()
-print(most_common_name)
+df['FemaleName'] = df.apply(lambda row: extract_female_name(row['Name'], row['Sex']), axis=1)
+female_names = df[df['FemaleName'].notna()]['FemaleName']
+most_common_name = female_names.value_counts().idxmax()
+
+# --- ВЫВОД ОТВЕТОВ С ПОЯСНЕНИЯМИ ---
+print("=" * 50)
+print("РЕЗУЛЬТАТЫ ВЫПОЛНЕНИЯ ЗАДАНИЙ")
+print("=" * 50)
+
+print("\n1. Количество мужчин и женщин:")
+print(f"   {male_count} {female_count}")
+print("   (первое число — мужчины, второе — женщины)")
+
+print("\n2. Доля выживших пассажиров:")
+print(f"   {survived_pct:.2f}%")
+
+print("\n3. Доля пассажиров первого класса:")
+print(f"   {pclass1_pct:.2f}%")
+
+print("\n4. Средний и медианный возраст пассажиров:")
+print(f"   {age_mean:.2f} {age_median:.2f}")
+print("   (первое число — средний возраст, второе — медиана)")
+
+print("\n5. Корреляция Пирсона между SibSp и Parch:")
+print(f"   {correlation:.2f}")
+print("   (значение от -1 до 1: положительная корреляция)")
+
+print("\n6. Самое популярное женское имя:")
+print(f"   {most_common_name}")
+
+print("\n" + "=" * 50)
