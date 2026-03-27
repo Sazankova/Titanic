@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+
+# Загрузка данных
+df = pd.read_csv('titanic.csv', index_col='PassengerId')
+
+# Задание 1: количество мужчин и женщин
+male_count = (df['Sex'] == 'male').sum()
+female_count = (df['Sex'] == 'female').sum()
+print(f"{male_count} {female_count}")
+
+# Задание 2: доля выживших в процентах
+survived_pct = (df['Survived'].sum() / len(df)) * 100
+print(f"{survived_pct:.2f}")
+
+# Задание 3: доля пассажиров первого класса в процентах
+pclass1_pct = ((df['Pclass'] == 1).sum() / len(df)) * 100
+print(f"{pclass1_pct:.2f}")
+
+# Задание 4: среднее и медиана возраста
+age_mean = df['Age'].mean()
+age_median = df['Age'].median()
+print(f"{age_mean:.2f} {age_median:.2f}")
+
+# Задание 5: корреляция Пирсона между SibSp и Parch
+correlation = df['SibSp'].corr(df['Parch'])
+print(f"{correlation:.2f}")
+
+# Задание 6: самое популярное женское имя
+def extract_first_name(name):
+    if ',' in name:
+        after_comma = name.split(',')[1].strip()
+        if '(' in after_comma:
+            after_comma = after_comma.split('(')[0].strip()
+        if '.' in after_comma:
+            parts = after_comma.split('.')
+            if len(parts) > 1:
+                name_part = parts[1].strip().replace('"', '').strip()
+                return name_part.split()[0] if name_part else ''
+        return after_comma.split()[0] if after_comma else ''
+    return ''
+
+df['FirstName'] = df['Name'].apply(extract_first_name)
+female_df = df[df['Sex'] == 'female']
+most_common_name = female_df['FirstName'].value_counts().idxmax()
+print(most_common_name)
